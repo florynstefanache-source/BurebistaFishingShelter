@@ -9,6 +9,7 @@
     <TLDPath Condition="'$(TLDPath)' == ''">C:\Program Files (x86)\Steam\steamapps\common\TheLongDark</TLDPath>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Il2CppTLD.IntBackedUnit"><HintPath>$(TLDPath)\MelonLoader\Il2CppAssemblies\Il2CppTLD.IntBackedUnit.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="MelonLoader"><HintPath>$(TLDPath)\MelonLoader\net6\MelonLoader.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="0Harmony"><HintPath>$(TLDPath)\MelonLoader\net6\0Harmony.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="Il2CppInterop.Runtime"><HintPath>$(TLDPath)\MelonLoader\net6\Il2CppInterop.Runtime.dll</HintPath><Private>false</Private></Reference>
@@ -24,5 +25,7 @@
     <Reference Include="UnityEngine.AssetBundleModule"><HintPath>$(TLDPath)\MelonLoader\Il2CppAssemblies\UnityEngine.AssetBundleModule.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="UnityEngine.AudioModule"><HintPath>$(TLDPath)\MelonLoader\Il2CppAssemblies\UnityEngine.AudioModule.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="UnityEngine.UI"><HintPath>$(TLDPath)\MelonLoader\Il2CppAssemblies\UnityEngine.UI.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.AIModule"><HintPath>$(TLDPath)\MelonLoader\Il2CppAssemblies\UnityEngine.AIModule.dll</HintPath><Private>false</Private></Reference>
   </ItemGroup>
 </Project>
+

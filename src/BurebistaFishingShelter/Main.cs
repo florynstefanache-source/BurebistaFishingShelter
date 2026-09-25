@@ -7,7 +7,7 @@ using System.Runtime.Versioning;
 using System.Text;
 using BurebistaFishingShelter;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
-using Il2CppSystem.Collections.Generic;
+using System.Collections.Generic;
 using MelonLoader;
 using Microsoft.CodeAnalysis;
 using UnityEngine;
@@ -17,7 +17,7 @@ using Object = UnityEngine.Object;
 [assembly: CompilationRelaxations(8)]
 [assembly: RuntimeCompatibility(WrapNonExceptionThrows = true)]
 [assembly: Debuggable(DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints)]
-[assembly: MelonInfo(typeof(BurebistaFishingShelter.Main), "Burebista Fishing Shelter", "0.3", "Burebista", null)]
+[assembly: MelonInfo(typeof(BurebistaFishingShelter.Main), "Burebista Fishing Shelter", "1.15.1", "Burebista", null)]
 [assembly: MelonGame("Hinterland", "TheLongDark")]
 [assembly: TargetFramework(".NETCoreApp,Version=v6.0", FrameworkDisplayName = ".NET 6.0")]
 [assembly: AssemblyVersion("0.0.0.0")]
@@ -33,6 +33,7 @@ namespace BurebistaFishingShelter
 {
 	public class Main : MelonMod
 	{
+		public static bool ShowHints = false;
 		private static GameObject shelterRoot;
 
 		private static GameObject doorRoot;
@@ -40,6 +41,7 @@ namespace BurebistaFishingShelter
 		private static bool closedDoor = true;
 
 		private static int variant = 1;
+		private static int placedVariant = 1;
 
 		private static float shelterScale = 0.08f;
 
@@ -52,14 +54,15 @@ namespace BurebistaFishingShelter
 		public override void OnInitializeMelon()
 		{
 			assetDir = Path.Combine(AppContext.BaseDirectory, "Mods", "BurebistaFishingShelter", "iceland");
-			((MelonBase)this).LoggerInstance.Msg("Burebista Fishing Shelter v0.8 TRUE OPAQUE ICE + INDOOR loaded.");
-			((MelonBase)this).LoggerInstance.Msg("F7 variant | F8 place shelter | F10 remove | E door when nearby");
+			((MelonBase)this).LoggerInstance.Msg("Burebista Fishing Shelter v1.15.1: lit materials, solid walls, craftable upgrades.");
+			((MelonBase)this).LoggerInstance.Msg("F9 toggle hints | F7 variant | F8 place shelter | F10 remove | E door when nearby");
 		}
 
 		public override void OnUpdate()
 		{
-			if (Playable())
+			if (ReadyForInput())
 			{
+				if (Input.GetKeyDown(KeyCode.F9)) { ShowHints = !ShowHints; HUDMessage(ShowHints ? "Ayudas visibles. F9 para ocultar." : "Ayudas ocultas. F9 para mostrar."); }
 				if (Input.GetKeyDown((KeyCode)286))
 				{
 					AdjustScale(-0.05f);
@@ -77,7 +80,10 @@ namespace BurebistaFishingShelter
 				{
 					PlaceShelter();
 				}
-				if (Input.GetKeyDown((KeyCode)291))
+				if (Input.GetKeyDown(KeyCode.F10)
+                    && !Input.GetKey(KeyCode.LeftControl) && !Input.GetKey(KeyCode.RightControl)
+                    && !Input.GetKey(KeyCode.LeftAlt) && !Input.GetKey(KeyCode.RightAlt)
+                    && !Input.GetKey(KeyCode.LeftShift) && !Input.GetKey(KeyCode.RightShift))
 				{
 					RemoveShelter();
 				}
@@ -97,7 +103,7 @@ namespace BurebistaFishingShelter
 			//IL_0040: Unknown result type (might be due to invalid IL or missing references)
 			//IL_0047: Unknown result type (might be due to invalid IL or missing references)
 			//IL_0053: Expected O, but got Unknown
-			if (Playable() && !((Object)(object)shelterRoot == (Object)null) && !(PlayerDistance() > 3f))
+			if (ShowHints && Event.current.type == EventType.Repaint && ReadyForInput() && !((Object)(object)shelterRoot == (Object)null) && !(PlayerDistance() > 3f))
 			{
 				if (promptStyle == null)
 				{
@@ -151,22 +157,27 @@ namespace BurebistaFishingShelter
 				HUDMessage("Fishing Shelter assets missing");
 				return;
 			}
-			RemoveShelter();
+			GameObject candidate = null;
 			try
 			{
 				Vector3 position = player.position + player.forward * 3.5f;
 				Quaternion rotation = Quaternion.Euler(0f, player.eulerAngles.y + 180f, 0f);
-				shelterRoot = B3D.Load(text, assetDir, "BurebistaFishingShelter");
-				shelterRoot.transform.localScale = Vector3.one * shelterScale;
-				shelterRoot.transform.position = position;
-				shelterRoot.transform.rotation = rotation;
-				AddSimpleColliders(shelterRoot);
+				candidate = B3D.Load(text, assetDir, "BurebistaFishingShelterPending");
+				candidate.transform.localScale = Vector3.one * shelterScale;
+				candidate.transform.position = position;
+				candidate.transform.rotation = rotation;
+				AddSimpleColliders(candidate);
+				RemoveShelter();
+				shelterRoot = candidate;
+				shelterRoot.name = "BurebistaFishingShelter";
+				placedVariant = variant;
 				closedDoor = true;
 				SpawnDoor();
 				HUDMessage($"Fishing Shelter variant {variant} placed");
 			}
 			catch (Exception ex)
 			{
+				if (candidate != null && candidate != shelterRoot) { candidate.SetActive(false); ShelterGeometry.ReleaseOwnedAssets(candidate); Object.Destroy(candidate); }
 				MelonLogger.Error("Shelter load failed: " + ex);
 				HUDMessage("Shelter model load failed - check MelonLoader log");
 			}
@@ -180,9 +191,10 @@ namespace BurebistaFishingShelter
 			}
 			if ((Object)(object)doorRoot != (Object)null)
 			{
-				Object.Destroy((Object)(object)doorRoot);
+				doorRoot.SetActive(false); ShelterGeometry.ReleaseOwnedAssets(doorRoot); Object.Destroy((Object)(object)doorRoot);
 			}
-			string text = Path.Combine(assetDir, closedDoor ? "shkura_closed.b3d" : "shkura.b3d");
+			// Asset names are misleading: shkura is the full curtain; shkura_closed is the gathered/open curtain.
+			string text = Path.Combine(assetDir, closedDoor ? "shkura.b3d" : "shkura_closed.b3d");
 			if (!File.Exists(text))
 			{
 				return;
@@ -194,6 +206,7 @@ namespace BurebistaFishingShelter
 				if (closedDoor)
 				{
 					AddSimpleColliders(doorRoot);
+					ShelterGeometry.AddClosedDoorBarrier(doorRoot);
 				}
 			}
 			catch (Exception ex)
@@ -213,12 +226,12 @@ namespace BurebistaFishingShelter
 		{
 			if ((Object)(object)doorRoot != (Object)null)
 			{
-				Object.Destroy((Object)(object)doorRoot);
+				doorRoot.SetActive(false); ShelterGeometry.ReleaseOwnedAssets(doorRoot); Object.Destroy((Object)(object)doorRoot);
 				doorRoot = null;
 			}
 			if ((Object)(object)shelterRoot != (Object)null)
 			{
-				Object.Destroy((Object)(object)shelterRoot);
+				shelterRoot.SetActive(false); ShelterGeometry.ReleaseOwnedAssets(shelterRoot); Object.Destroy((Object)(object)shelterRoot);
 				shelterRoot = null;
 			}
 		}
@@ -239,8 +252,7 @@ namespace BurebistaFishingShelter
 		{
 			try
 			{
-				object obj = StaticCall("GameManager", "GetPlayerTransform");
-				return (Transform)((obj is Transform) ? obj : null);
+				return Il2Cpp.GameManager.GetPlayerTransform();
 			}
 			catch
 			{
@@ -277,6 +289,16 @@ namespace BurebistaFishingShelter
 			return value;
 		}
 
+		private static bool ReadyForInput()
+		{
+			try
+			{
+				if (!Playable() || Il2Cpp.GameManager.IsMainMenuActive() || Il2Cpp.GameManager.IsEmptySceneActive() || !Il2Cpp.GameManager.HasPlayerObject() || GetPlayer() == null || Il2Cpp.GameManager.GetPlayerManagerComponent() == null) return false;
+				return Time.timeScale > 0f && !Il2Cpp.GameManager.ControlsLocked();
+			}
+			catch { return false; } // Loading screens do not have every native singleton yet.
+		}
+
 		private static bool Playable()
 		{
 			//IL_0000: Unknown result type (might be due to invalid IL or missing references)
@@ -302,24 +324,7 @@ namespace BurebistaFishingShelter
 			}
 		}
 
-		private static void AddSimpleColliders(GameObject root)
-		{
-			try
-			{
-				foreach (MeshFilter componentsInChild in root.GetComponentsInChildren<MeshFilter>(true))
-				{
-					if (!((Object)(object)componentsInChild == (Object)null) && !((Object)(object)componentsInChild.sharedMesh == (Object)null) && !((Object)(object)((Component)componentsInChild).GetComponent<Collider>() != (Object)null))
-					{
-						MeshCollider obj = ((Component)componentsInChild).gameObject.AddComponent<MeshCollider>();
-						obj.sharedMesh = componentsInChild.sharedMesh;
-						obj.convex = false;
-					}
-				}
-			}
-			catch
-			{
-			}
-		}
+		private static void AddSimpleColliders(GameObject root) => ShelterGeometry.AddSolidColliders(root);
 	}
 	internal static class B3D
 	{
@@ -387,11 +392,19 @@ namespace BurebistaFishingShelter
 				dir = textureDir
 			};
 			GameObject val = new GameObject(rootName);
-			while (reader.R.BaseStream.Position < num2)
+			try
 			{
-				ReadTop(reader, c, val.transform);
+				while (reader.R.BaseStream.Position < num2)
+					ReadTop(reader, c, val.transform);
+				return val;
 			}
-			return val;
+			catch
+			{
+				val.SetActive(false);
+				ShelterGeometry.ReleaseOwnedAssets(val);
+				Object.Destroy(val);
+				throw;
+			}
 		}
 
 		private static void ReadTop(Reader r, Ctx c, Transform parent)
@@ -536,7 +549,7 @@ namespace BurebistaFishingShelter
 			{
 				val3.Add(list[i]);
 			}
-			val2.SetVertices(val3);
+			val2.vertices = new Il2CppStructArray<Vector3>(val3.ToArray());
 			if (list2.Count == list.Count)
 			{
 				List<Vector3> val4 = new List<Vector3>();
@@ -544,7 +557,7 @@ namespace BurebistaFishingShelter
 				{
 					val4.Add(list2[j]);
 				}
-				val2.SetNormals(val4);
+				val2.normals = new Il2CppStructArray<Vector3>(val4.ToArray());
 			}
 			if (list3.Count == list.Count)
 			{
@@ -553,7 +566,7 @@ namespace BurebistaFishingShelter
 				{
 					val5.Add(list3[k]);
 				}
-				val2.SetUVs(0, val5);
+				val2.uv = new Il2CppStructArray<Vector2>(val5.ToArray());
 			}
 			val2.subMeshCount = list4.Count;
 			for (int l = 0; l < list4.Count; l++)
@@ -564,7 +577,7 @@ namespace BurebistaFishingShelter
 				{
 					val6.Add(item[m]);
 				}
-				val2.SetTriangles(val6, l, true);
+				val2.SetTriangles(new Il2CppStructArray<int>(val6.ToArray()), l, true);
 			}
 			if (list2.Count != list.Count)
 			{
@@ -579,6 +592,7 @@ namespace BurebistaFishingShelter
 				array[n] = MaterialFor(c, (list4[n].Item1 >= 0) ? list4[n].Item1 : num);
 			}
 			((Renderer)val7).sharedMaterials = array;
+			ShelterGeometry.FinishRendering(val2, val7);
 		}
 
 		private static void ReadVerts(Reader r, long end, List<Vector3> v, List<Vector3> n, List<Vector2> uv)
@@ -605,7 +619,7 @@ namespace BurebistaFishingShelter
 				}
 				else
 				{
-					n.Add(Vector3.zero);
+					// Leave normals empty; ReadMesh will calculate them.
 				}
 				if (((uint)num & 2u) != 0)
 				{
@@ -661,7 +675,7 @@ namespace BurebistaFishingShelter
 			//IL_00ea: Unknown result type (might be due to invalid IL or missing references)
 			//IL_00f0: Expected O, but got Unknown
 			Brush brush = ((brushId >= 0 && brushId < c.brushes.Count) ? c.brushes[brushId] : new Brush());
-			Shader obj = Shader.Find("Unlit/Texture") ?? Shader.Find("Legacy Shaders/Diffuse") ?? Shader.Find("Standard");
+			Shader obj = Shader.Find("Standard") ?? Shader.Find("Legacy Shaders/Diffuse");
 			if ((Object)(object)obj == (Object)null)
 			{
 				throw new Exception("No compatible Unity shader found");
@@ -669,6 +683,7 @@ namespace BurebistaFishingShelter
 			Material val = new Material(obj);
 			((Object)val).name = "BurebistaShelterMaterial";
 			val.color = Color.white;
+			if (val.HasProperty("_Glossiness")) val.SetFloat("_Glossiness", .05f);
 			Texture2D val2 = null;
 			string text = null;
 			if (brush.tex >= 0 && brush.tex < c.tex.Count)
@@ -714,10 +729,21 @@ namespace BurebistaFishingShelter
 				}
 				MelonLogger.Warning("[FishingShelter] Using visible fallback for: " + (text ?? "no texture"));
 			}
-			return val;
-		}
+            string textureKind = (text ?? "").ToLowerInvariant();
+            if (textureKind.Contains("snow") || textureKind.Contains("iglu"))
+            {
+                Texture nativeSnow = ShelterGeometry.FindGameSnowTexture();
+                if (nativeSnow != null)
+                {
+                    if (val2 != null) Object.Destroy(val2);
+                    val.mainTexture = nativeSnow;
+                    val.color = new Color(.82f, .86f, .90f, 1f);
+                }
+            }
+            return val;
+        }
 
-		private static string FindTexture(string dir, string fileName)
+        private static string FindTexture(string dir, string fileName)
 		{
 			if (string.IsNullOrWhiteSpace(fileName))
 			{
@@ -746,3 +772,16 @@ namespace BurebistaFishingShelter
 		}
 	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+

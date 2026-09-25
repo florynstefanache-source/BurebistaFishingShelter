@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType></PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../src/IgluAddon/StorageRecord.cs" Link="StorageRecord.cs" />
+    <Compile Include="../src/IgluAddon/RackPlacementRules.cs" Link="RackPlacementRules.cs" />
+    <Compile Include="../src/IgluAddon/ShelterState.cs" Link="ShelterState.cs" />
+    <Compile Include="../src/IgluAddon/RestoreGate.cs" Link="RestoreGate.cs" />
+  </ItemGroup>
+</Project>
