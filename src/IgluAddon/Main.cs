@@ -3,7 +3,7 @@ using UnityEngine;
 using Il2Cpp;
 using MelonLoader;
 
-[assembly: MelonInfo(typeof(BurebistaFishingShelterFeatures.Main), "Iglu Addon", "1.15.1", "Burebista")]
+[assembly: MelonInfo(typeof(BurebistaFishingShelterFeatures.Main), "Iglu Addon", "1.16.1", "Burebista")]
 [assembly: MelonGame("Hinterland", "TheLongDark")]
 namespace BurebistaFishingShelterFeatures
 {

@@ -17,7 +17,7 @@ using Object = UnityEngine.Object;
 [assembly: CompilationRelaxations(8)]
 [assembly: RuntimeCompatibility(WrapNonExceptionThrows = true)]
 [assembly: Debuggable(DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints)]
-[assembly: MelonInfo(typeof(BurebistaFishingShelter.Main), "Burebista Fishing Shelter", "1.15.1", "Burebista", null)]
+[assembly: MelonInfo(typeof(BurebistaFishingShelter.Main), "Burebista Fishing Shelter", "1.16.1", "Burebista", null)]
 [assembly: MelonGame("Hinterland", "TheLongDark")]
 [assembly: TargetFramework(".NETCoreApp,Version=v6.0", FrameworkDisplayName = ".NET 6.0")]
 [assembly: AssemblyVersion("0.0.0.0")]
@@ -53,8 +53,9 @@ namespace BurebistaFishingShelter
 
 		public override void OnInitializeMelon()
 		{
+			IgluSettings.Initialize();
 			assetDir = Path.Combine(AppContext.BaseDirectory, "Mods", "BurebistaFishingShelter", "iceland");
-			((MelonBase)this).LoggerInstance.Msg("Burebista Fishing Shelter v1.15.1: lit materials, solid walls, craftable upgrades.");
+			((MelonBase)this).LoggerInstance.Msg("Burebista Fishing Shelter v1.16.1: lit materials, solid walls, craftable upgrades.");
 			((MelonBase)this).LoggerInstance.Msg("F9 toggle hints | F7 variant | F8 place shelter | F10 remove | E door when nearby");
 		}
 
@@ -62,25 +63,25 @@ namespace BurebistaFishingShelter
 		{
 			if (ReadyForInput())
 			{
-				if (Input.GetKeyDown(KeyCode.F9)) { ShowHints = !ShowHints; HUDMessage(ShowHints ? "Ayudas visibles. F9 para ocultar." : "Ayudas ocultas. F9 para mostrar."); }
-				if (Input.GetKeyDown((KeyCode)286))
+				if (IgluSettings.Pressed(IgluSettings.Current.Hints)) { ShowHints = !ShowHints; HUDMessage(IgluText.Pick(ShowHints ? "Ayudas visibles." : "Ayudas ocultas.", ShowHints ? "Hints shown." : "Hints hidden.")); }
+				if (IgluSettings.Pressed(IgluSettings.Current.Smaller))
 				{
 					AdjustScale(-0.05f);
 				}
-				if (Input.GetKeyDown((KeyCode)287))
+				if (IgluSettings.Pressed(IgluSettings.Current.Larger))
 				{
 					AdjustScale(0.05f);
 				}
-				if (Input.GetKeyDown((KeyCode)288))
+				if (IgluSettings.Pressed(IgluSettings.Current.Variant))
 				{
 					variant = ((variant != 1) ? 1 : 2);
-					HUDMessage($"Fishing Shelter variant {variant}");
+					HUDMessage(IgluText.Pick($"Modelo del iglú: {variant}", $"Fishing Shelter variant {variant}"));
 				}
-				if (Input.GetKeyDown((KeyCode)289))
+				if (IgluSettings.Pressed(IgluSettings.Current.Build))
 				{
 					PlaceShelter();
 				}
-				if (Input.GetKeyDown(KeyCode.F10)
+				if (IgluSettings.Pressed(IgluSettings.Current.Remove)
                     && !Input.GetKey(KeyCode.LeftControl) && !Input.GetKey(KeyCode.RightControl)
                     && !Input.GetKey(KeyCode.LeftAlt) && !Input.GetKey(KeyCode.RightAlt)
                     && !Input.GetKey(KeyCode.LeftShift) && !Input.GetKey(KeyCode.RightShift))
@@ -94,8 +95,11 @@ namespace BurebistaFishingShelter
 			}
 		}
 
+		public override void OnDeinitializeMelon() { IglooHud.Dispose(); }
+
 		public override void OnGUI()
 		{
+            if (Event.current.type == EventType.Repaint && ReadyForInput()) IglooHud.Draw(shelterRoot != null);
 			//IL_005d: Unknown result type (might be due to invalid IL or missing references)
 			//IL_008f: Unknown result type (might be due to invalid IL or missing references)
 			//IL_0033: Unknown result type (might be due to invalid IL or missing references)
@@ -115,7 +119,7 @@ namespace BurebistaFishingShelter
 					};
 				}
 				promptStyle.normal.textColor = Color.white;
-				GUI.Label(new Rect((float)Screen.width / 2f - 180f, (float)(Screen.height - 170), 360f, 40f), closedDoor ? "E  OPEN SHELTER DOOR" : "E  CLOSE SHELTER DOOR", promptStyle);
+				GUI.Label(new Rect((float)Screen.width / 2f - 180f, (float)(Screen.height - 170), 360f, 40f), IgluText.Pick(closedDoor ? "E  ABRIR PUERTA DEL IGLÚ" : "E  CERRAR PUERTA DEL IGLÚ", closedDoor ? "E  OPEN SHELTER DOOR" : "E  CLOSE SHELTER DOOR"), promptStyle);
 			}
 		}
 
@@ -128,7 +132,7 @@ namespace BurebistaFishingShelter
 			{
 				shelterRoot.transform.localScale = Vector3.one * shelterScale;
 			}
-			HUDMessage($"Fishing Shelter scale: {shelterScale:0.00}");
+			HUDMessage(IgluText.Pick($"Escala del iglú: {shelterScale:0.00}", $"Fishing Shelter scale: {shelterScale:0.00}"));
 		}
 
 		private static void PlaceShelter()
@@ -148,13 +152,13 @@ namespace BurebistaFishingShelter
 			Transform player = GetPlayer();
 			if ((Object)(object)player == (Object)null)
 			{
-				HUDMessage("Player not found");
+				HUDMessage(IgluText.Pick("Jugador no disponible", "Player not found"));
 				return;
 			}
 			string text = Path.Combine(assetDir, (variant == 1) ? "iglu.b3d" : "iglu_2.b3d");
 			if (!File.Exists(text))
 			{
-				HUDMessage("Fishing Shelter assets missing");
+				HUDMessage(IgluText.Pick("Faltan los modelos del iglú", "Fishing Shelter assets missing"));
 				return;
 			}
 			GameObject candidate = null;
@@ -173,13 +177,13 @@ namespace BurebistaFishingShelter
 				placedVariant = variant;
 				closedDoor = true;
 				SpawnDoor();
-				HUDMessage($"Fishing Shelter variant {variant} placed");
+				HUDMessage(IgluText.Pick($"Iglú modelo {variant} colocado", $"Fishing Shelter variant {variant} placed"));
 			}
 			catch (Exception ex)
 			{
 				if (candidate != null && candidate != shelterRoot) { candidate.SetActive(false); ShelterGeometry.ReleaseOwnedAssets(candidate); Object.Destroy(candidate); }
 				MelonLogger.Error("Shelter load failed: " + ex);
-				HUDMessage("Shelter model load failed - check MelonLoader log");
+				HUDMessage(IgluText.Pick("No se pudo cargar el modelo. Revisa Latest.log.", "Shelter model load failed - check MelonLoader log"));
 			}
 		}
 
@@ -219,7 +223,7 @@ namespace BurebistaFishingShelter
 		{
 			closedDoor = !closedDoor;
 			SpawnDoor();
-			HUDMessage(closedDoor ? "Shelter door closed" : "Shelter door opened");
+			HUDMessage(IgluText.Pick(closedDoor ? "Puerta cerrada" : "Puerta abierta", closedDoor ? "Shelter door closed" : "Shelter door opened"));
 		}
 
 		private static void RemoveShelter()

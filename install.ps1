@@ -5,11 +5,11 @@ $src=Join-Path $repo 'release\Mods'
 $dst=Join-Path $GameDir 'Mods'
 if (!(Test-Path -LiteralPath $GameDir)) { throw "No se encontro The Long Dark: $GameDir" }
 if (Get-Process -Name 'tld' -ErrorAction SilentlyContinue) { throw 'Cierra The Long Dark antes de instalar.' }
-$names=@('BurebistaFishingShelter.dll','BurebistaFishingShelterEffects.dll','IgluAddon.dll')
+$names=@('BurebistaFishingShelter.dll','BurebistaFishingShelterEffects.dll','IgluAddon.dll','BurebistaSnowBlocks.dll')
 foreach ($name in $names) {
     if (!(Test-Path -LiteralPath (Join-Path $src $name))) { throw "Falta el modulo $name" }
 }
-$backup=Join-Path $GameDir ('BurebistaBackups\before-1.14-'+[DateTime]::Now.ToString('yyyyMMdd-HHmmss-fff'))
+$backup=Join-Path $GameDir ('BurebistaBackups\before-1.16.0-'+[DateTime]::Now.ToString('yyyyMMdd-HHmmss-fff'))
 New-Item -ItemType Directory -Force -Path $dst,$backup | Out-Null
 foreach ($name in ($names + @('BurebistaFishingShelter'))) {
     $old=Join-Path $dst $name

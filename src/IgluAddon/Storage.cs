@@ -1,3 +1,4 @@
+using BurebistaFishingShelter;
 using System;
 using System.Reflection;
 using Il2Cpp;
@@ -57,7 +58,7 @@ namespace BurebistaFishingShelterFeatures
                 storageFault = true;
                 if (storageRoot != null) storageRoot.SetActive(false);
                 MelonLogger.Error("Almacen bloqueado para preservar su contenido: " + error);
-                HUDMessage.AddMessage("No se pudo restaurar el almacen; sus datos se conservan.");
+                HUDMessage.AddMessage(IgluText.Pick("No se pudo restaurar el almacen; sus datos se conservan.", "Could not restore storage; its data has been preserved."));
             }
         }
         internal void CaptureStorage()
@@ -69,7 +70,7 @@ namespace BurebistaFishingShelterFeatures
                 if (!(bool)storageSave.Invoke(storageData, new object[] { record.Encode(), StorageKey }))
                     throw new InvalidOperationException("ModData no esta listo");
             }
-            catch (Exception error) { MelonLogger.Error("No se pudo guardar el almacen: " + error); HUDMessage.AddMessage("Error al guardar el almacen. Revisa Latest.log."); }
+            catch (Exception error) { MelonLogger.Error("No se pudo guardar el almacen: " + error); HUDMessage.AddMessage(IgluText.Pick("Error al guardar el almacen. Revisa Latest.log.", "Error saving storage. Check Latest.log.")); }
         }
         private string SerializeStorage()
         {
@@ -108,19 +109,19 @@ namespace BurebistaFishingShelterFeatures
                 || Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)) return;
             RestoreStorage();
             if (!storageLoaded || storageFault)
-            { HUDMessage.AddMessage("El almacen necesita ModData.dll cargado y sus datos disponibles."); return; }
+            { HUDMessage.AddMessage(IgluText.Pick("El almacen necesita ModData.dll cargado y sus datos disponibles.", "Storage requires ModData.dll to be loaded and its data to be available.")); return; }
             if (ctrl) { BuildStorage(); return; }
-            if (storage == null) { HUDMessage.AddMessage("Ctrl+U: construir almacen de 500 kg."); return; }
+            if (storage == null) { HUDMessage.AddMessage(IgluText.Pick("Ctrl+U: construir almacen de 500 kg.", "Ctrl+U: build 500 kg storage.")); return; }
             Transform player = GameManager.GetPlayerTransform();
             if (player == null || Vector3.Distance(player.position, storageRoot.transform.position) > 3f)
-            { HUDMessage.AddMessage("Acercate al almacen para abrirlo con U."); return; }
+            { HUDMessage.AddMessage(IgluText.Pick("Acercate al almacen para abrirlo con U.", "Move closer to storage to open it with U.")); return; }
             foreach (Panel_Container panel in Resources.FindObjectsOfTypeAll<Panel_Container>())
                 if (panel != null && panel.gameObject.scene.IsValid())
                 {
                     storagePanel = panel;
                     if (storage.m_ContainerPanel == null) storage.m_ContainerPanel = new Il2CppTLD.UI.Generics.PanelReference<Panel_Container>();
                     storage.m_ContainerPanel.InitializeReference();
-                    panel.SetContainer(storage, "Almacen del iglu - 500 kg");
+                    panel.SetContainer(storage, IgluText.Pick("Almacen del iglu - 500 kg", "Igloo storage - 500 kg"));
                     panel.Enable(true);
                     return;
                 }
@@ -144,7 +145,7 @@ namespace BurebistaFishingShelterFeatures
         }
         private void BuildStorage()
         {
-            if (storage != null) { HUDMessage.AddMessage("El almacen ya esta construido. U: abrir."); return; }
+            if (storage != null) { HUDMessage.AddMessage(IgluText.Pick("El almacen ya esta construido. U: abrir.", "Storage is already built. U: open.")); return; }
             Inventory inv = GameManager.GetInventoryComponent();
             if (inv == null) return;
             int[] before = new int[StorageCounts.Length];
@@ -152,7 +153,7 @@ namespace BurebistaFishingShelterFeatures
             {
                 before[i] = inv.GetNumGearWithName(StorageMaterials[i]);
                 if (before[i] < StorageCounts[i])
-                { HUDMessage.AddMessage("Almacen: 12 maderas recuperadas, 6 chatarras, 4 telas y 4 tripas curadas."); return; }
+                { HUDMessage.AddMessage(IgluText.Pick("Almacen: 12 maderas recuperadas, 6 chatarras, 4 telas y 4 tripas curadas.", "Storage: 12 reclaimed wood, 6 scrap metal, 4 cloth and 4 cured guts.")); return; }
             }
             try
             {
@@ -167,7 +168,7 @@ namespace BurebistaFishingShelterFeatures
                 if (!(bool)storageSave.Invoke(storageData, new object[] { record.Encode(), StorageKey }))
                     throw new InvalidOperationException("No se pudo registrar el almacen");
                 storageRoot.SetActive(true);
-                HUDMessage.AddMessage("Almacen de 500 kg construido. U: abrir. Guarda la partida para conservarlo.");
+                HUDMessage.AddMessage(IgluText.Pick("Almacen de 500 kg construido. U: abrir. Guarda la partida para conservarlo.", "500 kg storage built. U: open. Save your game to keep it."));
             }
             catch (Exception error)
             {
@@ -179,15 +180,15 @@ namespace BurebistaFishingShelterFeatures
                     if (removed > 0) Refund(GameManager.GetPlayerManagerComponent(), StorageMaterials[i], removed);
                 }
                 MelonLogger.Error("Construccion del almacen cancelada: " + error);
-                HUDMessage.AddMessage("Almacen cancelado; materiales devueltos.");
+                HUDMessage.AddMessage(IgluText.Pick("Almacen cancelado; materiales devueltos.", "Storage cancelled; materials returned."));
             }
         }
         private bool StorageBlocksChanges()
         {
             if (!storageLoaded && storageData != null)
-            { HUDMessage.AddMessage("Espera a que se carguen los datos del almacen."); return true; }
+            { HUDMessage.AddMessage(IgluText.Pick("Espera a que se carguen los datos del almacen.", "Wait for storage data to load.")); return true; }
             if (!storageFault && (storage == null || storage.IsEmpty())) return false;
-            HUDMessage.AddMessage("Vacia el almacen antes de mover, redimensionar o desmontar el iglu.");
+            HUDMessage.AddMessage(IgluText.Pick("Vacia el almacen antes de mover, redimensionar o desmontar el iglu.", "Empty storage before moving, resizing or dismantling the igloo."));
             return true;
         }
         private bool RemoveEmptyStorage()

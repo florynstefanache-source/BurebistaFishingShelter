@@ -9,6 +9,7 @@
     <TLDPath Condition="'$(TLDPath)' == ''">C:\Program Files (x86)\Steam\steamapps\common\TheLongDark</TLDPath>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="ModSettings"><HintPath>$(TLDPath)\Mods\ModSettings.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="Il2CppTLD.IntBackedUnit"><HintPath>$(TLDPath)\MelonLoader\Il2CppAssemblies\Il2CppTLD.IntBackedUnit.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="MelonLoader"><HintPath>$(TLDPath)\MelonLoader\net6\MelonLoader.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="0Harmony"><HintPath>$(TLDPath)\MelonLoader\net6\0Harmony.dll</HintPath><Private>false</Private></Reference>

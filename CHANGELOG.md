@@ -1,3 +1,9 @@
+# 1.16.1
+
+Español: receta de 40 bloques enteros y 1 piel curada de ciervo; controles configurables en Mod Settings; ayudas bilingües e icono opcional con la tecla elegida. Incluye Snow Blocks 0.1.9 compatible.
+
+English: 40 whole snow blocks and 1 cured deer hide recipe; configurable controls in Mod Settings; bilingual hints and optional HUD icon showing the selected key. Includes compatible Snow Blocks 0.1.9.
+
 # v1.15.1
 
 Corrige el error al pulsar Atrás/Escape en el almacén del iglú. Inicializa la referencia del panel y aplica un cierre sin animación únicamente a ese almacén.

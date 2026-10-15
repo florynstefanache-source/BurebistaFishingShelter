@@ -1,85 +1,139 @@
-# Burebista Fishing Shelter — v1.15.1
+# Burebista Fishing Shelter / Igloo · 1.16.1
 
-Refugio de pesca para The Long Dark, basado en el mod v1.13 de Burebista. Incluye saco, mesa, bastidor y nuevo almacén opcional de 500 kg.
+[Descargar / Download v1.16.1](https://github.com/florynstefanache-source/BurebistaFishingShelter/releases/latest) · [English](#english)
 
-## Descargas
+![Interior del iglú / Igloo interior](images/igloo-interior.png)
 
-- [Actualización v1.15.1](https://github.com/florynstefanache-source/BurebistaFishingShelter/raw/refs/heads/main/downloads/BurebistaFishingShelter-v1.15.1-Actualizacion.zip): tres DLL para una instalación existente.
-- [Proyecto completo](https://github.com/florynstefanache-source/BurebistaFishingShelter/archive/refs/heads/main.zip): código y carpeta `release/Mods` con todos los modelos y texturas.
+## Español
 
-## Requisitos
+**Nuevo en 1.16.1:** icono discreto del iglú en la esquina superior derecha, con la tecla configurada y el texto Construir/Mover. Se oculta en los menús. Puedes desactivarlo en Mod Settings con «Mostrar icono del iglú y su tecla». Es un recordatorio visual: pulsa la tecla indicada para usarlo. No necesita cursor ni se pulsa con el ratón.
 
-- The Long Dark para Windows, IL2CPP. Compilación comprobada con las bibliotecas locales de la versión 2.55 y MelonLoader 0.7.2.
-- Las tres DLL de esta versión y los modelos/texturas de `Mods/BurebistaFishingShelter/iceland`.
-- **ModData.dll para el almacén**. Instálalo si todavía no lo tienes. No se incluye ni se sustituye en este paquete. Las otras mejoras no requieren esta dependencia nueva.
-- No necesitas Unity ni .NET SDK para jugar. El SDK es necesario solo para compilar el proyecto.
+Refugio de pesca e iglú para The Long Dark. Esta actualización cambia la receta del iglú y añade controles configurables desde Mod Settings, con ayudas en español o inglés según el idioma del juego.
 
-## Instalación y actualización
+### Instalación
 
-1. Guarda y cierra el juego. Haz una copia de la partida y de la carpeta del mod.
-2. Copia las tres DLL de `Mods` del ZIP Actualizacion a `TheLongDark/Mods`, sustituyendo las anteriores.
-3. Conserva `BurebistaFishingShelter/iceland`, `states-v2`, `shelter-v1.state` y los datos de ModData. No borres la carpeta del mod.
-4. Para una instalación completa, usa la carpeta `release/Mods` del ZIP Proyecto, que incluye los modelos y las texturas.
-5. Comprueba que ModData.dll está instalado. Abre el juego y espera a que termine la carga.
+1. Cierra el juego y conserva una copia de tu partida y de los DLL anteriores.
+2. Copia el contenido de `Mods` de este ZIP dentro de `TheLongDark/Mods`, aceptando reemplazar los archivos.
+3. Actualiza juntos `BurebistaFishingShelter.dll`, `IgluAddon.dll` y **`BurebistaSnowBlocks.dll` 0.1.9 incluido**. No dejes copias antiguas de estos DLL con otros nombres dentro de Mods.
+4. Conserva tus archivos de partidas, `states-v2`, `shelter-v1.state` y los datos de ModData. No borres la carpeta del refugio.
 
-Ruta habitual: `C:/Program Files (x86)/Steam/steamapps/common/TheLongDark`.
+Requiere MelonLoader y **ModSettings.dll**. El almacén opcional necesita además **ModData.dll**. Esas dependencias no se incluyen. El paquete incluye los modelos y texturas del refugio y su módulo Effects original. Compilado con las bibliotecas locales de TLD 2.55 / MelonLoader 0.7.2.
 
-Los tres módulos son `BurebistaFishingShelter.dll`, `BurebistaFishingShelterEffects.dll` e `IgluAddon.dll`. No necesitas reconstruir la mesa o el bastidor existentes.
+### Nueva receta del iglú
 
-## Construcciones y materiales
+**40 bloques enteros de nieve + 1 piel curada de ciervo para la puerta.**
 
-Los materiales deben estar en tu inventario. Las mejoras no aparecen gratis; se construyen por separado dentro del iglú.
+- Ya no exige palos ni telas para el iglú.
+- Los bloques deben estar completos: un bloque empezado para derretir agua no sirve para construir. Los montones de nieve de 0,5 L tampoco cuentan.
+- Cuenta los bloques de la mochila y los bloques sueltos a un máximo de 8 metros del jugador. La piel curada debe estar en la mochila.
+- Si faltan materiales, muestra un aviso y no construye. Los bloques se reservan al colocar y se consumen al crear el refugio; si no llega a colocarse, se restablece la reserva.
+- Recolocar un iglú existente no vuelve a cobrar la receta. Las construcciones guardadas se restauran sin cobrar materiales.
+- Al desmontarlo devuelve una piel curada; no devuelve los bloques de nieve.
 
-| Construcción | Tecla | Materiales |
-|---|---|---|
-| Iglú | F8 | 20 palos, 5 telas y 2 pieles de ciervo curadas |
-| Mesa | Ctrl+J | 6 maderas recuperadas, 4 chatarras y 2 telas |
-| Bastidor | Ctrl+K | 12 palos, 4 tripas curadas y 2 telas |
-| Almacén de 500 kg | Ctrl+U | 12 maderas recuperadas, 6 chatarras, 4 telas y 4 tripas curadas |
+Snow Blocks 0.1.9 reconoce que este IgluAddon gestiona la receta y evita aplicar su antigua intervención sobre ella. Por eso se suministran juntos. El cambio de Snow Blocks se limita a esa compatibilidad; mantiene el sistema de agua, animación y avisos de nieve al estar agachado.
 
-## Teclas de uso
+### Elegir tus teclas en Mod Settings
 
-| Tecla | Acción |
+Abre **Opciones → Mod Settings → Burebista · Igloo / Fishing Shelter**. Pulsa el botón de la tecla, asigna otra y **confirma** para guardarla. Estos son los seis controles configurables:
+
+| Acción configurable | Valor inicial |
 |---|---|
-| T | Abrir el menú de la mesa construida, dentro del iglú |
-| G | Colocar materiales frescos cercanos en el bastidor |
-| U | Abrir el almacén construido, a menos de 3 m |
-| B | Descansar en el saco, cerca de él |
-| E | Abrir o cerrar la puerta, cerca del centro |
-| F9 | Mostrar u ocultar las instrucciones en pantalla |
-| F8 | Construir o recolocar el iglú |
-| F7 | Cambiar la variante |
-| F5 / F6 | Ajustar el tamaño del iglú |
-| F10 sin modificadores | Desmontar el iglú |
+| Construir / colocar / mover el iglú | F8 |
+| Mostrar / ocultar ayudas | F9 |
+| Cambiar modelo | F7 |
+| Reducir tamaño | F5 |
+| Aumentar tamaño | F6 |
+| Desmontar | F10 |
 
-T, G y U se usan sin Ctrl, Alt ni Mayús. Ctrl+F10 no desmonta el iglú, para conservar el control del ahumador. En algunos teclados hay que usar Fn para las teclas F.
+Puedes sustituirlos por teclas normales, Insert, Home, End, etc. Se rechazan duplicados entre estos seis controles, teclas de movimiento, E/B/T/G/U, modificadores y botones del ratón. Evita también teclas ocupadas por otros mods: no se detectan automáticamente. Las ayudas de construir y ocultar muestran las teclas que hayas elegido.
 
-## Mesa y bastidor
+Las ayudas, avisos y nombres de estos ajustes usan inglés si el idioma del juego es English; en español usan español. El título del mod conserva su nombre.
 
-La mesa mide hasta 90 cm de altura y conserva las texturas y el crafteo normal de TLD. El bastidor mantiene el tamaño aprobado en v1.14.8 y la tecla G. Ninguno crece al ampliar el iglú; se reducen para caber en iglús pequeños.
+### Uso y mejoras
 
-Para usar el bastidor, suelta desde tu inventario pieles o tripas frescas y retoños verdes de abedul/arce cerca de él. Acércate y pulsa G. Tiene cuatro sitios para pieles/tripas y dos para retoños. Selecciona los objetos para recogerlos. Se conserva su tamaño y progreso de curado; las pieles grandes pueden solaparse visualmente. No se puede recolocar, redimensionar ni desmontar el iglú con objetos en el bastidor.
+E abre/cierra la puerta; B permite descansar en el saco. Las mejoras se fabrican por separado y conservan sus recetas:
 
-## Almacén nuevo
+| Mejora | Construir | Materiales | Usar |
+|---|---|---|---|
+| Mesa | Ctrl+J | 6 maderas recuperadas, 4 chatarras, 2 telas | T |
+| Bastidor de curado | Ctrl+K | 12 palos, 4 tripas curadas, 2 telas | G |
+| Almacén de 500 kg | Ctrl+U | 12 maderas recuperadas, 6 chatarras, 4 telas, 4 tripas curadas | U |
 
-Estantería detrás de la mesa, hacia la pared, de unos 1,8 m de ancho y 1,9 m de alto, con madera del juego y adornos visuales de comida, herramientas, linterna y equipo. Los adornos no son objetos recogibles ni añaden inventario gratis. Si un modelo no está disponible en esa versión del juego, se omite ese adorno y se anota en el registro.
+Suelta materiales frescos cerca del bastidor y pulsa G: cuatro sitios para pieles/tripas y dos para retoños. Recógelos seleccionándolos. Vacía el almacén y recoge los materiales del bastidor antes de mover, redimensionar o desmontar. Guarda después de construir o cambiar el contenido del almacén.
 
-Pulsa Ctrl+U para construirlo y U para abrir la interfaz normal de contenedores. Capacidad de 500 kg, sin filtro adicional de tipos: acepta los alimentos y el equipo que permita guardar TLD en un contenedor normal. Mantiene las reglas normales del juego, incluido el deterioro; no es una nevera ni un congelador.
+### Comprobaciones
 
-El almacén empieza vacío. Su contenido y su construcción se guardan con ModData por partida y región al guardar el juego. No se escriben los objetos en el archivo independiente del refugio. Guarda después de construirlo y después de cambiar su contenido. Conserva ModData y sus datos al actualizar o hacer copias de seguridad.
+Compilación sin errores de los módulos modificados; 60 pruebas de estado/guardado, 189 comprobaciones de reglas de nieve y pruebas de idioma existentes, y 16 comprobaciones de teclas, idioma e interfaz con Snow Blocks. Las pruebas no ejecutan el juego: la colocación y el menú nativo requieren comprobarse dentro de tu partida.
 
-Debes vaciarlo antes de mover, redimensionar o desmontar el iglú. Al desmontar se devuelve la mitad de sus materiales. Si falla la lectura de sus datos, se bloquea el almacén para evitar sustituir contenido por un almacén vacío.
+## English
 
-## Comprobación de esta versión
+**New in 1.16.1:** a small igloo icon in the upper right corner shows your configured key and Build/Move caption. Hidden in menus. Disable it with “Show igloo icon and its key” in Mod Settings. It is a visual reminder: press the displayed key to use it. No mouse cursor or clicking is needed.
 
-Los tres módulos compilan sin errores. Pasan 60 comprobaciones de estado, restauración, selección del bastidor y formato del almacén, además de las comprobaciones del cargador B3D. Estas pruebas no ejecutan Unity ni la interfaz nativa de contenedores.
+Fishing shelter and igloo for The Long Dark. This update changes the igloo recipe and adds configurable controls in Mod Settings. Hints use Spanish or English according to the game language.
 
-La v1.15.1 ha sido confirmada como funcional por el usuario. Las pruebas automatizadas no verifican todos los casos de capacidad, guardado/recarga y cambio de región. Antes de utilizarlo para equipo valioso, prueba depositar un objeto, guardar, salir al menú, cargar y retirarlo. Si hay un fallo, conserva la partida y los datos y revisa `MelonLoader/Latest.log`.
+### Installation
 
-## Compilar
+1. Close the game and keep a backup of your save and previous DLLs.
+2. Copy this ZIP's `Mods` contents into `TheLongDark/Mods`, replacing the existing files.
+3. Update `BurebistaFishingShelter.dll`, `IgluAddon.dll` and the **included `BurebistaSnowBlocks.dll` 0.1.9 together**. Do not keep renamed copies of older DLLs in Mods.
+4. Keep your saves, `states-v2`, `shelter-v1.state` and ModData data. Do not delete the shelter folder.
 
-Ejecuta `build.ps1` con .NET SDK y las bibliotecas generadas por MelonLoader en la instalación del juego. `-GameDir` permite elegir otra ruta. El ZIP Proyecto incluye el código y las pruebas. ModData se detecta al ejecutar el juego; no hace falta referenciarlo para compilar.
+Requires MelonLoader and **ModSettings.dll**. Optional storage also requires **ModData.dll**. These dependencies are not included. The package contains the shelter models/textures and its original Effects module. Built against local TLD 2.55 / MelonLoader 0.7.2 libraries.
 
-## Corrección v1.15.1
+### New igloo recipe
 
-Corrige el error NullReferenceException en Container.BeginContainerClose al pulsar Atrás o Escape en el almacén. El cierre sin animación solo se aplica al almacén del iglú; los demás contenedores conservan su comportamiento. Mantiene contenido, capacidad, recetas, muebles y teclas. Cierra el juego e instala las tres DLL sin borrar ModData ni estados. No necesitas reconstruir el almacén. Compilación verificada; El usuario ha confirmado que esta versión funciona en su instalación.
+**40 whole snow blocks + 1 cured deer hide for the door.**
+
+- Sticks and cloth are no longer required for the igloo itself.
+- Partly melted blocks cannot be used for construction. Loose 0.5 L snow piles do not count either.
+- Counts blocks in your backpack and loose blocks within 8 metres of the player. Keep the cured hide in your backpack.
+- Missing materials prevent construction and display a message. Blocks are reserved during placement and consumed when the shelter is created; failed placement releases the reservation.
+- Moving an existing igloo does not charge the recipe again. Restoring a saved shelter does not consume materials.
+- Dismantling returns one cured hide; snow blocks are not returned.
+
+Snow Blocks 0.1.9 detects that this IgluAddon handles the recipe and skips its older recipe intervention, preventing a double charge. Update both together. Its other systems—water, animation and crouching snow hints—remain as before.
+
+### Choose your keys in Mod Settings
+
+Open **Options → Mod Settings → Burebista · Igloo / Fishing Shelter**. Click a key button, assign your preferred key and **confirm** to save. These are the six configurable controls:
+
+| Configurable action | Default |
+|---|---|
+| Build / place / move igloo | F8 |
+| Show / hide hints | F9 |
+| Change model | F7 |
+| Decrease size | F5 |
+| Increase size | F6 |
+| Dismantle | F10 |
+
+Use ordinary keys, Insert, Home, End, etc. Duplicate assignments among these controls, movement keys, E/B/T/G/U, modifiers and mouse buttons are rejected. Also avoid keys used by other mods; those conflicts cannot be detected automatically. Build and hide hints display your selected keys.
+
+Hints, messages and these settings labels use English when the game language is English; Spanish uses Spanish. The mod title retains its name.
+
+### Use and upgrades
+
+E opens/closes the door; B rests in the bedroll. Upgrades remain separate constructions with their existing recipes:
+
+| Upgrade | Build | Materials | Use |
+|---|---|---|---|
+| Workbench | Ctrl+J | 6 reclaimed wood, 4 scrap metal, 2 cloth | T |
+| Curing rack | Ctrl+K | 12 sticks, 4 cured guts, 2 cloth | G |
+| 500 kg storage | Ctrl+U | 12 reclaimed wood, 6 scrap metal, 4 cloth, 4 cured guts | U |
+
+Drop fresh materials beside the rack and press G: four hide/gut slots and two sapling slots. Select items to pick them up. Empty storage and collect rack materials before moving, resizing or dismantling. Save after building storage or changing its contents.
+
+### Verification
+
+Modified modules build without errors; 60 state/save tests, 189 snow-rule checks and existing language checks pass, plus 16 key, language and Snow Blocks interface checks. Tests do not run the game; placement and the native settings menu still need in-game verification.
+
+## Capturas / Screenshots
+
+Icono del iglú y tecla elegida / Igloo icon and selected key.
+
+![Icono del iglú / Igloo HUD icon](images/igloo-hud.png)
+
+Controles configurables y opción para ocultar el icono / Configurable controls and icon visibility option.
+
+![Mod Settings](images/igloo-settings.png)
+
+Las capturas muestran otros mods del jugador, incluidos trofeos y perro/trineo, que no forman parte de esta descarga. / Screenshots also show the player’s other mods, including trophies and dog/sled, which are not included in this download.

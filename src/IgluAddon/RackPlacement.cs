@@ -1,3 +1,4 @@
+using BurebistaFishingShelter;
 using System;
 using System.Collections.Generic;
 using Il2Cpp;
@@ -27,7 +28,7 @@ namespace BurebistaFishingShelterFeatures
             Vector3 centre = curingRack.transform.TransformPoint(new Vector3(0,.6f,0));
             if (Vector3.Distance(player.position, centre) > 3f)
             {
-                HUDMessage.AddMessage("Acercate al bastidor para colocar materiales con G.");
+                HUDMessage.AddMessage(IgluText.Pick("Acercate al bastidor para colocar materiales con G.", "Move closer to the curing rack to place materials with G."));
                 return;
             }
 
@@ -83,8 +84,8 @@ namespace BurebistaFishingShelterFeatures
                     MelonLoader.MelonLogger.Warning("No se pudo colocar un material: " + error.Message);
                 }
             }
-            HUDMessage.AddMessage(placed > 0 ? "Materiales colocados para secar: " + placed + ". Recogelos seleccionandolos."
-                : "Sin sitio o materiales frescos cerca. Deja pieles, tripas o retonos junto al bastidor.");
+            HUDMessage.AddMessage(placed > 0 ? IgluText.Pick("Materiales colocados para secar: ", "Materials placed for curing: ") + placed + IgluText.Pick(". Recogelos seleccionandolos.", ". Select them to pick them up.")
+                : IgluText.Pick("Sin sitio o materiales frescos cerca. Deja pieles, tripas o retonos junto al bastidor.", "No space or fresh materials nearby. Drop hides, guts or saplings beside the curing rack."));
         }
     }
 }

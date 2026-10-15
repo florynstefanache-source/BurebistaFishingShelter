@@ -1,3 +1,4 @@
+using BurebistaFishingShelter;
 using System;
 using System.Collections.Generic;
 using Il2Cpp;
@@ -43,13 +44,13 @@ namespace BurebistaFishingShelterFeatures
                     panel.EnableCraftingAtLocation(workbench.Cast<CraftingLocationInterface>());
                     return;
                 }
-                HUDMessage.AddMessage("La interfaz de crafteo no esta disponible todavia.");
+                HUDMessage.AddMessage(IgluText.Pick("La interfaz de crafteo no esta disponible todavia.", "The crafting interface is not available yet."));
             }
         }
 
         private void BuildUpgrade(bool bench)
         {
-            if (bench ? hasWorkbench : hasRack) { HUDMessage.AddMessage("Esta mejora ya esta construida."); return; }
+            if (bench ? hasWorkbench : hasRack) { HUDMessage.AddMessage(IgluText.Pick("Esta mejora ya esta construida.", "This upgrade is already built.")); return; }
             Inventory inv = GameManager.GetInventoryComponent();
             string[] names = bench ? BenchMaterials : RackMaterials;
             int[] counts = bench ? BenchCounts : RackCounts;
@@ -57,7 +58,7 @@ namespace BurebistaFishingShelterFeatures
             for (int i = 0; i < names.Length; i++)
                 if (inv.GetNumGearWithName(names[i]) < counts[i])
                 {
-                    HUDMessage.AddMessage(bench ? "Mesa: 6 maderas recuperadas, 4 chatarras, 2 telas." : "Bastidor: 12 palos, 4 tripas curadas, 2 telas.");
+                    HUDMessage.AddMessage(bench ? IgluText.Pick("Mesa: 6 maderas recuperadas, 4 chatarras, 2 telas.", "Workbench: 6 reclaimed wood, 4 scrap metal, 2 cloth.") : IgluText.Pick("Bastidor: 12 palos, 4 tripas curadas, 2 telas.", "Curing rack: 12 sticks, 4 cured guts, 2 cloth."));
                     return;
                 }
             // Construct inactive first: unavailable shaders/components must not consume materials.
@@ -76,7 +77,7 @@ namespace BurebistaFishingShelterFeatures
                 if (bench) hasWorkbench = true; else hasRack = true;
                 if (!SaveState()) throw new IOExceptionForUpgrade();
                 upgrade.SetActive(true);
-                HUDMessage.AddMessage(bench ? "Mesa integrada construida. T: trabajar." : "Bastidor construido. Deja materiales cerca y pulsa G para colocarlos.");
+                HUDMessage.AddMessage(bench ? IgluText.Pick("Mesa integrada construida. T: trabajar.", "Built-in workbench built. T: craft.") : IgluText.Pick("Bastidor construido. Deja materiales cerca y pulsa G para colocarlos.", "Curing rack built. Drop materials nearby and press G to place them."));
             }
             catch (Exception e)
             {
@@ -89,7 +90,7 @@ namespace BurebistaFishingShelterFeatures
                     if (removed > 0) Refund(GameManager.GetPlayerManagerComponent(), names[i], removed);
                 }
                 MelonLogger.Error("Mejora cancelada: " + e.Message);
-                HUDMessage.AddMessage("No se pudo construir la mejora; materiales devueltos.");
+                HUDMessage.AddMessage(IgluText.Pick("No se pudo construir la mejora; materiales devueltos.", "Could not build the upgrade; materials returned."));
             }
         }
         private sealed class IOExceptionForUpgrade : Exception { public IOExceptionForUpgrade() : base("No se pudo guardar la mejora") {} }
@@ -202,8 +203,8 @@ namespace BurebistaFishingShelterFeatures
             if (!InsideShelter()) return;
             Inventory inv = GameManager.GetInventoryComponent();
             if (inv == null) return;
-            string bench = hasWorkbench ? "T  USAR MESA DE TRABAJO" : "Ctrl+J  MEJORAR: MESA   " + Requirements(inv, BenchMaterials, BenchCounts, new[]{"madera recuperada", "chatarra", "tela"});
-            string rack = hasRack ? "G: colocar pieles, tripas y retonos cercanos en el bastidor (6 sitios)" : "Ctrl+K  MEJORAR: BASTIDOR   " + Requirements(inv, RackMaterials, RackCounts, new[]{"palos", "tripas curadas", "tela"});
+            string bench = hasWorkbench ? IgluText.Pick("T  USAR MESA DE TRABAJO", "T  USE WORKBENCH") : IgluText.Pick("Ctrl+J  MEJORAR: MESA   ", "Ctrl+J  UPGRADE: WORKBENCH   ") + Requirements(inv, BenchMaterials, BenchCounts, new[]{IgluText.Pick("madera recuperada", "reclaimed wood"), IgluText.Pick("chatarra", "scrap metal"), IgluText.Pick("tela", "cloth")});
+            string rack = hasRack ? IgluText.Pick("G: colocar pieles, tripas y retonos cercanos en el bastidor (6 sitios)", "G: place nearby hides, guts and saplings on the curing rack (6 slots)") : IgluText.Pick("Ctrl+K  MEJORAR: BASTIDOR   ", "Ctrl+K  UPGRADE: CURING RACK   ") + Requirements(inv, RackMaterials, RackCounts, new[]{IgluText.Pick("palos", "sticks"), IgluText.Pick("tripas curadas", "cured guts"), IgluText.Pick("tela", "cloth")});
             GUI.Label(new Rect(10, Screen.height - 310, Screen.width - 20, 30), bench, style);
             GUI.Label(new Rect(10, Screen.height - 280, Screen.width - 20, 30), rack, style);
         }

@@ -1,3 +1,4 @@
+using BurebistaFishingShelter;
 using System;
 using System.IO;
 using System.Reflection;
@@ -20,6 +21,9 @@ namespace BurebistaFishingShelterFeatures
         private GUIStyle style;
         private float nextScan, nextSave;
         private string activeSave, activeScene, legacyContainer = "";
+        internal static readonly bool UsesNativeSnowRecipe = true;
+        private object snowDebit;
+        private GearItem snowDoor;
         private bool pendingConstruction;
         private bool canInput, showHints;
         private string lastSavedPayload;
@@ -58,7 +62,7 @@ namespace BurebistaFishingShelterFeatures
         public override void OnInitializeMelon()
         {
             Instance = this;
-            LoggerInstance.Msg("v1.15.1: F9 muestra/oculta ayudas. Ctrl+J mesa; Ctrl+K bastidor; T trabajar.");
+            LoggerInstance.Msg("v1.16.0: configurable controls in Mod Settings; 40 whole snow blocks + 1 cured deer hide.");
         }
         // Do not reset on OnSceneWasLoaded: TLD loads GEAR/EXTRA/WILDLIFE additively.
         private void ClearReferences()
@@ -156,15 +160,15 @@ namespace BurebistaFishingShelterFeatures
             if (root == null)
             {
                 Inventory inv = GameManager.GetInventoryComponent(); if (inv == null) return;
-                string req = "F8 CONSTRUIR IGLU   Palos " + inv.GetNumGearWithName("GEAR_Stick") + "/20   Telas " + inv.GetNumGearWithName("GEAR_Cloth") + "/5   Pieles curadas " + inv.GetNumGearWithName("GEAR_LeatherHideDried") + "/2   | F9 ocultar";
+                string req = IgluSettings.Current.Build + IgluText.Pick(" CONSTRUIR IGLÚ   Bloques enteros "," BUILD IGLOO   Whole snow blocks ") + SnowConstruction.Count() + "/40   " + IgluText.Pick("Piel de ciervo curada ","Cured deer hide ") + inv.GetNumGearWithName("GEAR_LeatherHideDried") + "/1   | " + IgluSettings.Current.Hints + IgluText.Pick(" ocultar ayudas", " hide hints");
                 GUI.Label(new Rect(10, Screen.height - 110, Screen.width - 20, 35), req, style);
                 return;
             }
             if (bed != null && InsideShelter())
-                GUI.Label(new Rect(10, Screen.height - 220, Screen.width - 20, 30), "B DESCANSAR EN EL SACO   | F9 ocultar ayudas", style);
+                GUI.Label(new Rect(10, Screen.height - 220, Screen.width - 20, 30), IgluText.Pick("B DESCANSAR EN EL SACO   | ", "B REST IN BEDROLL   | ") + IgluSettings.Current.Hints + IgluText.Pick(" ocultar ayudas", " hide hints"), style);
             DrawUpgrades();
             if (InsideShelter()) GUI.Label(new Rect(10, Screen.height - 345, Screen.width - 20, 30),
-                storage != null ? "U  ABRIR ALMACEN - 500 kg" : "Ctrl+U  ALMACEN: 12 maderas recuperadas, 6 chatarras, 4 telas, 4 tripas curadas", style);
+                storage != null ? IgluText.Pick("U  ABRIR ALMACEN - 500 kg", "U  OPEN STORAGE - 500 kg") : IgluText.Pick("Ctrl+U  ALMACEN: 12 maderas recuperadas, 6 chatarras, 4 telas, 4 tripas curadas", "Ctrl+U  STORAGE: 12 reclaimed wood, 6 scrap metal, 4 cloth, 4 cured guts"), style);
         }
         private static bool TryGetSession(out string save, out string scene)
         {
@@ -216,49 +220,54 @@ namespace BurebistaFishingShelterFeatures
         {
             if (StorageBlocksChanges()) return false;
             if (!RackOccupied()) return true;
-            HUDMessage.AddMessage("Recoge los objetos del bastidor antes de cambiar el tamano.");
+            HUDMessage.AddMessage(IgluText.Pick("Recoge los objetos del bastidor antes de cambiar el tamano.", "Collect the items from the curing rack before resizing."));
             return false;
         }
         internal bool BeforePlace()
         {
+            RollbackSnow();
             pendingConstruction = false;
             if (Restoring) return true;
-            if (!restoreGate.Attempted) { HUDMessage.AddMessage("Espera a que termine la restauracion del iglu guardado."); return false; }
+            if (!restoreGate.Attempted) { HUDMessage.AddMessage(IgluText.Pick("Espera a que termine la restauracion del iglu guardado.", "Wait for the saved igloo to finish restoring.")); return false; }
             if (StorageBlocksChanges()) return false;
             if (storage != null) CaptureStorage();
-            if (RackOccupied()) { HUDMessage.AddMessage("Recoge los objetos del bastidor antes de mover el iglu."); return false; }
+            if (RackOccupied()) { HUDMessage.AddMessage(IgluText.Pick("Recoge los objetos del bastidor antes de mover el iglu.", "Collect the items from the curing rack before moving the igloo.")); return false; }
             if (CurrentShelter() != null) { Replacing = true; return true; }
             Inventory inv = GameManager.GetInventoryComponent();
-            if (inv == null || inv.GetNumGearWithName("GEAR_Stick") < 20 || inv.GetNumGearWithName("GEAR_Cloth") < 5 || inv.GetNumGearWithName("GEAR_LeatherHideDried") < 2)
-            { HUDMessage.AddMessage("Necesitas 20 palos, 5 telas y 2 pieles de ciervo curadas."); return false; }
+            try {
+                snowDoor = inv?.GetHighestConditionGearThatMatchesName("GEAR_LeatherHideDried");
+                if (snowDoor == null || snowDoor.GetNormalizedCondition() <= 0) throw new Exception(IgluText.Pick("Necesitas 40 bloques enteros de nieve y 1 piel curada de ciervo.","You need 40 whole snow blocks and 1 cured deer hide."));
+                snowDebit = SnowConstruction.Reserve();
+            } catch (Exception e) { RollbackSnow(); HUDMessage.AddMessage(e.InnerException?.Message ?? e.Message); return false; }
             pendingConstruction = true; return true;
         }
         internal void AfterPlace(bool ran)
         {
-            if (!ran || Restoring) return;
+            if (!ran || Restoring) { RollbackSnow(); return; }
             GameObject shelter = CurrentShelter();
             if (shelter != null)
             {
                 if (pendingConstruction)
                 {
                     Inventory inv = GameManager.GetInventoryComponent();
-                    inv.RemoveGearFromInventory("GEAR_Stick", 20, true); inv.RemoveGearFromInventory("GEAR_Cloth", 5, true); inv.RemoveGearFromInventory("GEAR_LeatherHideDried", 2, true);
+                    SnowConstruction.Invoke(snowDebit, "Commit"); inv.RemoveUnits(snowDoor, 1); snowDebit = null; snowDoor = null;
                     hasWorkbench = false; hasRack = false;
                 }
                 Attach(shelter);
             }
-            pendingConstruction = false; Replacing = false;
+            RollbackSnow(); pendingConstruction = false; Replacing = false;
         }
+        internal void RollbackSnow() { SnowConstruction.Invoke(snowDebit, "Rollback"); snowDebit = null; snowDoor = null; }
         internal bool BeforeRemove()
         {
             if (Restoring || Replacing) return true;
             if (CurrentShelter() == null) return true;
-            if (RackOccupied()) { HUDMessage.AddMessage("Recoge los objetos del bastidor antes de desmontar el iglu."); return false; }
+            if (RackOccupied()) { HUDMessage.AddMessage(IgluText.Pick("Recoge los objetos del bastidor antes de desmontar el iglu.", "Collect the items from the curing rack before dismantling the igloo.")); return false; }
             if (StorageBlocksChanges()) return false;
-            if (!SaveState(true)) { HUDMessage.AddMessage("No se pudo guardar el desmontaje."); return false; }
-            if (!RemoveEmptyStorage()) { SaveState(false); HUDMessage.AddMessage("No se pudo registrar el desmontaje del almacen."); return false; }
+            if (!SaveState(true)) { HUDMessage.AddMessage(IgluText.Pick("No se pudo guardar el desmontaje.", "Could not save the dismantling.")); return false; }
+            if (!RemoveEmptyStorage()) { SaveState(false); HUDMessage.AddMessage(IgluText.Pick("No se pudo registrar el desmontaje del almacen.", "Could not save the storage dismantling.")); return false; }
             PlayerManager pm = GameManager.GetPlayerManagerComponent();
-            Refund(pm, "GEAR_Stick", 10); Refund(pm, "GEAR_Cloth", 2); Refund(pm, "GEAR_LeatherHideDried", 1);
+            Refund(pm, "GEAR_LeatherHideDried", 1);
             if (hasWorkbench) { Refund(pm, BenchMaterials[0], 3); Refund(pm, BenchMaterials[1], 2); Refund(pm, BenchMaterials[2], 1); }
             if (hasRack) { Refund(pm, RackMaterials[0], 6); Refund(pm, RackMaterials[1], 2); Refund(pm, RackMaterials[2], 1); }
             if (storage != null) for (int i=0;i<StorageCounts.Length;i++) Refund(pm, StorageMaterials[i], StorageCounts[i]/2);
@@ -300,6 +309,7 @@ namespace BurebistaFishingShelterFeatures
         static MethodBase TargetMethod() => AccessTools.Method(Main.BaseType, "PlaceShelter");
         static bool Prefix() => Main.Instance == null || Main.Instance.BeforePlace();
         static void Postfix(bool __runOriginal) { Main.Instance?.AfterPlace(__runOriginal); }
+        static Exception Finalizer(Exception __exception) { if (__exception != null) Main.Instance?.RollbackSnow(); return __exception; }
     }
     [HarmonyPatch]
     internal static class ScalePatch
